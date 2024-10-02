@@ -1,20 +1,26 @@
-#!/usr/bin/python3
-"""Unittest module for the User Class."""
-
 import unittest
-from datetime import datetime
-import time
 from models.user import User
-import re
-import json
-from models.engine.file_storage import FileStorage
-import os
-from models import storage
-from models.base_model import BaseModel
 
 
 class TestUser(unittest.TestCase):
+    """Test cases for the User class."""
 
+    def test_initialization(self):
+        """Test that a User instance is created correctly."""
+        user = User()
+        self.assertIsInstance(user, User)
+
+    def test_attributes(self):
+        """Test default attributes of User."""
+        user = User()
+        self.assertEqual(user.email, "")
+        self.assertEqual(user.password, "")
+        self.assertEqual(user.first_name, "")
+        self.assertEqual(user.last_name, "")
+
+
+if __name__ == '__main__':
+    unittest.main()
     """Test Cases for the User class."""
 
     def setUp(self):

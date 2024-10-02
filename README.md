@@ -111,7 +111,7 @@ To get started with the AirBnB Clone:
 
 1. **Clone the Repository**:
 ```bash
-git clone https://github.com/yourusername/airbnb_clone.git
+git clone https://github.com/beefsnot/atlas-airbnb_clone.git
 cd airbnb_clone
 ```
 2. **Run the Console**:

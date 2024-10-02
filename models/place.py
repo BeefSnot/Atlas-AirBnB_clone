@@ -1,24 +1,20 @@
 #!/usr/bin/python3
-# module for place.py
-
-'''
-defines place class which is a subclass of BaseModel.
-Represents renting and listing.
-
-classes:
-place: name, description, information about the place such as number of rooms.
-
-usage:
-assist with the management of different models like users.
-'''
+"""
+This module defines a class named Place that inhereits from BaseModel
+"""
 from models.base_model import BaseModel
 
-class Place(BaseModel):
-    '''
-    Base model class for all entities in the application
-    '''
-    def __init__(self, id: int):
-        self.id = id
 
-    def __repr__(self):
-        return f"<{self.__class__.__name__} {self.id}>"
+class Place(BaseModel):
+    """ This is a class Place that inherits from BaseModel"""
+    city_id = ""
+    user_id = ""
+    name = ""
+    description = ""
+    number_rooms = 0
+    number_bathrooms = 0
+    max_guest = 0
+    price_by_night = 0
+    latitude = 0.0
+    longitude = 0.0
+    amenity_ids = []

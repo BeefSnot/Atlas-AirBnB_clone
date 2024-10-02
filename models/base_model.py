@@ -1,51 +1,94 @@
 #!/usr/bin/python3
-'''models base_model module'''
+"""
+This is a simple base module that will be built on by derived classes.
 
-import models
-from uuid import uuid4
+Returns:
+    str: when you print an instance it will return a formatted string.
+"""
+
+
+import uuid
 from datetime import datetime
+import models
+
 
 class BaseModel:
-    '''A base model class providing common fields and behaviors
-    for all models
+    def __init__(self, *args, **kwargs):
+        """
+        initializes an instance based on if it does or does not have kwargs.
+        if no kwargs it sets up as normal with uuid and datetime.
+        if there are kwargs then it initializes based off the dictionaries
+        values.
+        """
 
-    Attributes:
-    id (str): a unique identifier for the model instance
-    created_at (datetime): the timestamp when the model instance was created
-    updated_at (datetime): the timestamp when the model was last updated
-    '''
+        if not kwargs:
+            self.id = str(uuid.uuid4())
+            self.created_at = datetime.now()
+            self.updated_at = datetime.now()
+        else:
+            if '__class__' in kwargs:
+                del kwargs['__class__']
 
-    def __init__(self):
-        '''Initializes a new instance of the BaseModel class.
-        Creates a unique identifier for the instance and sets the creation
-        and last update timestamp.
-        '''
-        self.id = str(uuid4())
-        self.created_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+            for key, value in kwargs.items():
+                if key in ['created_at', 'updated_at']:
+                    kwargs[key] = datetime.fromisoformat(value)
 
-    def to_dict(self):
-        '''Converts the model instance to a dictionary.'''
-        return {
-            'id': self.id,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat(),
-            'is_deleted': self.is_deleted
-        }
+            for key, value in kwargs.items():
+                setattr(self, key, value)
 
-    def save(self):
-        '''Updates the updated_at timestamp to the current UTC time.
-        This method simulates updating the record in a database.
-        '''
-        self.updated_at = datetime.utcnow()
-
-    def delete(self):
-        '''Marks the model instance as deleted
-        by setting the updated_at timestamp to None.
-        This method simulates deleting the record from a database.
-        '''
-        self.updated_at = None
+        models.storage.new(self)
 
     def __str__(self):
-        """Returns a concise string representation of the model instance."""
-        return "[{}]{}{}".format(self.__class__.__name__, self.id, self.__dict__)
+        """
+        returns a formatted string with the class name, the id, and the dict.
+        """
+
+        return "[BaseModel] ({}) {}".format(self.id, self.__dict__)
+
+    def save(self):
+        """
+        updates the instance attribute updated_at with the current datetime.
+        """
+
+        self.updated_at = datetime.now()
+        models.storage.save()
+
+    def to_dict(self):
+        """
+        copies the instances __dict__, formats the created_at and updated_at
+        strings, adds the __class__ to the dict copy and then returns it.
+
+        Returns:
+            dict: returns a dictionary containing all keys/values of
+            the instance.
+        """
+
+        my_dict = self.__dict__.copy()
+        my_dict['created_at'] = self.created_at.isoformat()
+        my_dict['updated_at'] = self.updated_at.isoformat()
+        my_dict['__class__'] = self.__class__.__name__
+        return my_dict
+
+    @classmethod
+    def from_dict(cls, inst_dict):
+        """
+        creates a new instance from a dictionary representation.
+
+        Args:
+            inst_dict (dict): dictionary representation of an instance.
+
+        Returns:
+            cls: a new instance
+        """
+
+        for attr in ['id', 'created_at', 'updated_at']:
+            if attr in inst_dict:
+                del inst_dict[attr]
+
+        for key, value in inst_dict.items():
+            if isinstance(value, dict):
+                inst_dict[key] = cls.from_dict(value)
+
+        new_instance = cls(**inst_dict)
+
+        return new_instance

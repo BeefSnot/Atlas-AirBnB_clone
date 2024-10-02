@@ -1,94 +1,42 @@
 #!/usr/bin/python3
-"""
-This is a simple base module that will be built on by derived classes.
-
-Returns:
-    str: when you print an instance it will return a formatted string.
-"""
-
-
 import uuid
 from datetime import datetime
-import models
 
 
 class BaseModel:
+    """Base class for all models in AirBnB clone project."""
+
     def __init__(self, *args, **kwargs):
-        """
-        initializes an instance based on if it does or does not have kwargs.
-        if no kwargs it sets up as normal with uuid and datetime.
-        if there are kwargs then it initializes based off the dictionaries
-        values.
-        """
-
-        if not kwargs:
-            self.id = str(uuid.uuid4())
-            self.created_at = datetime.now()
-            self.updated_at = datetime.now()
-        else:
-            if '__class__' in kwargs:
-                del kwargs['__class__']
-
+        """Initialization of the base model."""
+        if kwargs:
             for key, value in kwargs.items():
                 if key in ['created_at', 'updated_at']:
-                    kwargs[key] = datetime.fromisoformat(value)
-
-            for key, value in kwargs.items():
-                setattr(self, key, value)
-
-        models.storage.new(self)
+                    # Convert the ISO format string back to datetime objects
+                    setattr(self, key, datetime.fromisoformat(value))
+                elif key != '__class__':
+                    setattr(self, key, value)
+        else:
+            self.id = str(uuid.uuid4())
+            self.created_at = self.updated_at = datetime.now()
 
     def __str__(self):
-        """
-        returns a formatted string with the class name, the id, and the dict.
-        """
-
-        return "[BaseModel] ({}) {}".format(self.id, self.__dict__)
+        """Return string representation of the instance."""
+        return "[{}] ({}) {}".format(self.__class__.__name__,
+                                     self.id, self.__dict__)
 
     def save(self):
-        """
-        updates the instance attribute updated_at with the current datetime.
-        """
-
+        """Update the updated_at attributes to the current time."""
         self.updated_at = datetime.now()
-        models.storage.save()
+        from models import storage  # Dynamic import to avoid cicular import
+        storage.save()  # Save the storage to file
 
     def to_dict(self):
-        """
-        copies the instances __dict__, formats the created_at and updated_at
-        strings, adds the __class__ to the dict copy and then returns it.
-
-        Returns:
-            dict: returns a dictionary containing all keys/values of
-            the instance.
-        """
-
-        my_dict = self.__dict__.copy()
-        my_dict['created_at'] = self.created_at.isoformat()
-        my_dict['updated_at'] = self.updated_at.isoformat()
-        my_dict['__class__'] = self.__class__.__name__
-        return my_dict
-
-    @classmethod
-    def from_dict(cls, inst_dict):
-        """
-        creates a new instance from a dictionary representation.
-
-        Args:
-            inst_dict (dict): dictionary representation of an instance.
-
-        Returns:
-            cls: a new instance
-        """
-
-        for attr in ['id', 'created_at', 'updated_at']:
-            if attr in inst_dict:
-                del inst_dict[attr]
-
-        for key, value in inst_dict.items():
-            if isinstance(value, dict):
-                inst_dict[key] = cls.from_dict(value)
-
-        new_instance = cls(**inst_dict)
-
-        return new_instance
+        """Return a dictionary representation of the instance."""
+        dict_rep = self.__dict__.copy()  # Copy current attributes
+        dict_rep['__class__'] = self.__class__.__name__
+        # Add class name to the dictionary
+        dict_rep['created_at'] = self.created_at.isoformat()
+        # Convert created_at to ISO string
+        dict_rep['updated_at'] = self.updated_at.isoformat()
+        # Convert updated_at to ISO string
+        return dict_rep

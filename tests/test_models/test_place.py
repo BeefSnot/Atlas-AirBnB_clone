@@ -1,35 +1,36 @@
 #!/usr/bin/python3
-""" Test Place """
-
 import unittest
-import pep8
-from models import place
-from models.base_model import BaseModel
+from models.place import Place
+import datetime
 
-class Test_Place(unittest.TestCase):
-    """ Tests Place """
-
-    def test_pep8(self):
-        """ Tests pep8 """
-        pep8style = pep8.StyleGuide(quite=True)
-        result = pep8style.check_files(["models/place.py"])
-        self.assertEqual(result.total_errors, 0, "Check pep8")
+"""Defines a class TestPlace"""
 
 
-    def test_Place_dict(self):
-        """ Place_dict """
-        self.assertTrue('id' in self.place.__dict__)
-        self.assertTrue('created_at' in self.place.__dict__)
-        self.assertTrue('updated_at' in self.place.__dict__)
-        self.assertTrue('city_id' in self.place.__dict__)
-        self.assertTrue('user_id' in self.place.__dict__)
-        self.assertTrue('name' in self.place.__dict__)
-        self.assertTrue('__class__' in self.place.__dict__)
-
-    def test_save_Place(self):
-        """ Save_Place """
-        self.place.save()
-        self.assertNotEqual(self.place.created_at, self.place.updated_at)
-
-if __name__ == '__main__':
-    unittest.main()
+class TestCity(unittest.TestCase):
+    """Class used for test cases"""
+    def test_city(self):
+        """Test case for Place"""
+        self.place = Place()
+        self.assertTrue(hasattr(self.place, 'city_id'))
+        self.assertTrue(hasattr(self.place, 'user_id'))
+        self.assertTrue(hasattr(self.place, 'name'))
+        self.assertTrue(hasattr(self.place, 'description'))
+        self.assertTrue(hasattr(self.place, 'number_rooms'))
+        self.assertTrue(hasattr(self.place, 'number_bathrooms'))
+        self.assertTrue(hasattr(self.place, 'max_guest'))
+        self.assertTrue(hasattr(self.place, 'price_by_night'))
+        self.assertTrue(hasattr(self.place, 'latitude'))
+        self.assertTrue(hasattr(self.place, 'longitude'))
+        self.assertTrue(hasattr(self.place, 'amenity_ids'))
+    
+        self.assertEqual(self.place.city_id, "")
+        self.assertEqual(self.place.user_id, "")
+        self.assertEqual(self.place.name, "")
+        self.assertEqual(self.place.description, "")
+        self.assertEqual(self.place.number_rooms, 0)
+        self.assertEqual(self.place.number_bathrooms, 0)
+        self.assertEqual(self.place.max_guest, 0)
+        self.assertEqual(self.place.price_by_night, 0)
+        self.assertEqual(self.place.latitude, 0.0)
+        self.assertEqual(self.place.longitude, 0.0)
+        self.assertEqual(self.place.amenity_ids, [])

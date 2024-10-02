@@ -1,89 +1,111 @@
 #!/usr/bin/python3
+"""
+FileStorage class module for AirBnB clone
+"""
+
 import json
 import os
 from models.base_model import BaseModel
 from models.user import User
+from models.state import State
+from models.city import City
+from models.place import Place
+from models.amenity import Amenity
+from models.review import Review
 
 
 class FileStorage:
-    """Class to serialize and deserialize instances to/from a JSON file."""
+    """
+    Class serializes/deserializes instances to/from JSON file
+
+    Attributes:
+        __file_path (str):  path to JSON file
+        __objects (dict):   dictionary of objects
+
+    Methods:
+        all(self):          returns dictionary of objects
+        new(self, obj):     sets obj in __objects with key <obj class name>.id
+        save(self):         serializes __objects to JSON file
+        reload(self):       deserializes JSON file to __objects
+    """
+
+    __file_path = "file.json"
+    __objects = {}
 
     def __init__(self):
-        self.__file_path = "file.json"  # path to the JSON file
-        self.__objects = {}  # stores all objects
-
-    # @property
-    # def objects(self):
-        # """Expose __objects as a property."""
-        # return self.__objects
+        """
+        Initializes FileStorage class
+        """
+        self.__objects = {}
+        self.reload()
 
     def all(self):
-        """Returns the dictionary __objects."""
+        """
+        Returns dictionary of objects
+
+        Returns:
+            dict:  __objects
+        """
         return self.__objects
 
     def new(self, obj):
-        """Sets in __objects the obj with key <obj class name>.id."""
-        key = f"{obj.__class__.__name__}.{obj.id}"  # Fixed key formatting
-        self.__objects[key] = obj  # Ensure the object is properly stored
+        """
+        Pairs objects with keys in __objects
+
+        Attributes:
+            obj (BaseModel):  object to set in __objects
+        """
+        key = self.key_create(obj)  # create key
+        self.__objects[key] = obj  # set object in __objects
 
     def save(self):
-        """Serializes __objects to the JSON file."""
-        try:
-            with open(self.__file_path, 'w') as f:
-                # Create a dictionary representation of all objects
-                data = {key: obj.to_dict() for key,
-                        obj in self.__objects.items()}
-                # Serialize the data to JSON and write it to the file
-                json.dump(data, f)
-            return True  # Ensures that it returns True after saving
-        except (IOError, json.JSONDecodeError):
-            return False  # Return False if there was an error
-        except Exception as e:
-            return False  # Handle any other exception
+        """
+        Serializes __objects to JSON file
+
+        Attributes:
+            obj_dict (dict):  dictionary to store objects
+        """
+        obj_dict = {}  # dictionary to store objects
+        for key, value in self.__objects.items():  # iterate through __objects
+            obj_dict[key] = value.to_dict()  # add object to dictionary
+        with open(self.__file_path, "w", encoding="utf-8") as file:  # open
+            json.dump(obj_dict, file)  # write to file
 
     def reload(self):
-        """Deserializes the JSON file to __objects."""
-        if os.path.exists(self.__file_path):
-            with open(self.__file_path, 'r') as f:
-                loaded_data = json.load(f)  # Load JSON data
-                for key, value in loaded_data.items():
-                    class_name = value.pop("__class__", None)
-                    # Remove __class__ key
+        """
+        Deserializes JSON file to __objects
 
-                    if not class_name:
-                        continue
-
-                    # Import classes here to avoid circular import
-                    from models.base_model import BaseModel
-                    from models.user import User
-                    from models.place import Place
-                    from models.state import State
-                    from models.city import City
-                    from models.review import Review
-                    from models.amenity import Amenity
-
-                # Map class names to actual classes
-                classes = {
-                    "BaseModel": BaseModel,
-                    "User": User,
-                    "Place": Place,
-                    "State": State,
-                    "City": City,
-                    "Review": Review,
-                    "Amenity": Amenity
-                }
-
-                # Ensure class name is retrieved correctly from the dictionary
+        Attributes:
+            obj_dict (dict):  dictionary to store objects
+            obj_class (dict): dictionary of classes
+        """
+        try:
+            with open(self.__file_path, "r") as file:  # open file
+                obj_dict = json.load(file)  # load file
+            classes = {
+                "BaseModel": BaseModel,
+                "User": User,
+                "State": State,
+                "City": City,
+                "Place": Place,
+                "Amenity": Amenity,
+                "Review": Review,
+            }  # dictionary of classes
+            for key, value in obj_dict.items():  # iterate through obj_dict
+                class_name = value.get("__class__")  # get class name
                 if class_name in classes:
-                    cls = classes.get(class_name)
-                    # Retrieve the class object from the classes dictionary
-                    self.objects[key] = cls(**value)
-                    # Instantiate the class using the saved dictionary
+                    self.__objects[key] = classes[class_name](**value)  # creat
+        except FileNotFoundError:  # if file not found
+            pass  # do nothing
 
-    def get_objects(self):
-        """Returns the objects stored in __objects."""
-        return self.__objects  # Accessing __objects directly is fine here
+    def key_create(self, obj):
+        """
+        Creates key for object
 
-    def count_objects(self):
-        """Returns the number of objects stored."""
-        return len(self.__objects)
+        Attributes:
+            obj (BaseModel):  object to create key for
+
+        Returns:
+            str:  key for object
+        """
+        return type(obj).__name__ + "." + obj.id
